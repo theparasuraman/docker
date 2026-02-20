@@ -1,20 +1,15 @@
 pipeline {
     agent any
     environment {
-        // Docker image info
         IMAGE_NAME = 'jenkins-with-docker'
         IMAGE_TAG = 'latest'
-        
-        // Jenkins credentials ID for Docker Hub (create in Jenkins → Credentials)
-        DOCKER_HUB_CREDENTIALS = 'docker-hub-creds'
-        
-        // Path inside container where your repo lives
         WORKSPACE_DIR = '/workspace/docker'
     }
     stages {
         stage('Clone Source') {
             steps {
                 dir("${WORKSPACE_DIR}") {
+                    deleteDir() // wipe old files
                     git branch: 'main', url: 'https://github.com/theparasuraman/docker.git'
                 }
             }
@@ -36,13 +31,7 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "$DOCKER_HUB_CREDENTIALS", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker tag $IMAGE_NAME:$IMAGE_TAG \$DOCKER_USER/$IMAGE_NAME:$IMAGE_TAG
-                        docker push \$DOCKER_USER/$IMAGE_NAME:$IMAGE_TAG
-                    """
-                }
+                echo "Skipping push since repo is public; add Docker Hub creds if needed"
             }
         }
 
