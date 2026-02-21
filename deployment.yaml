@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: nginx-demo
-        image: theparasuraman/nginx-ubuntu:latest
+        image: theparasuraman/jenkins-with-docker:latest
         ports:
         - containerPort: 80
 ---
