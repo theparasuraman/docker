@@ -1,44 +1,49 @@
 pipeline {
     agent any
+
     environment {
-        IMAGE_NAME = 'jenkins-with-docker'
-        IMAGE_TAG = 'latest'
-        WORKSPACE_DIR = '/workspace/docker'
+        DOCKER_REPO = 'theparasuraman'  
+        IMAGE_NAME  = 'jenkins-with-docker'
+        IMAGE_TAG   = "${BUILD_NUMBER}" 
     }
+
     stages {
+
         stage('Clone Source') {
             steps {
-                dir("${WORKSPACE_DIR}") {
-                    deleteDir() // wipe old files
-                    git branch: 'main', url: 'https://github.com/theparasuraman/docker.git'
-                }
+                deleteDir()
+                git branch: 'main', url: 'https://github.com/theparasuraman/docker.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                dir("${WORKSPACE_DIR}") {
-                    sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
-                }
+                sh """
+                    docker build -t $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG .
+                    docker tag $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG $DOCKER_REPO/$IMAGE_NAME:latest
+                """
             }
         }
 
         stage('Test Container') {
             steps {
-                sh "docker run --rm $IMAGE_NAME:$IMAGE_TAG echo 'Container works!'"
+                sh "docker run --rm $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG echo 'Container works!'"
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                echo "Skipping push since repo is public; add Docker Hub creds if needed"
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                dir("${WORKSPACE_DIR}") {
-                    sh 'kubectl apply -f deployment.yaml'
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG
+                        docker push $DOCKER_REPO/$IMAGE_NAME:latest
+                        docker logout
+                    """
                 }
             }
         }
@@ -46,14 +51,13 @@ pipeline {
 
     post {
         always {
-            echo "Cleaning up dangling Docker images..."
             sh 'docker image prune -f'
         }
         success {
             echo "Pipeline completed successfully!"
         }
         failure {
-            echo "Pipeline failed. Check logs above for details."
+            echo "Pipeline failed. Check logs above."
         }
     }
 }
