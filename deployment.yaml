@@ -19,4 +19,4 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 9090
-              hostPort: 9092        # ← different port on host
+              hostPort: 9090
