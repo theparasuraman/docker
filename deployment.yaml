@@ -12,18 +12,11 @@ spec:
       labels:
         app: tomcat-app
     spec:
-      hostNetwork: true   # equivalent to --network host
+      hostNetwork: true
       containers:
         - name: tomcat-app
-          image: my-tomcat-app:latest
-          imagePullPolicy: IfNotPresent
+          image: theparasuraman/vod-docker:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 9090
-          volumeMounts:
-            - name: host-home
-              mountPath: /home/user
-      volumes:
-        - name: host-home
-          hostPath:
-            path: /home/user
-            type: Directory
+              hostPort: 9092        # ← different port on host
