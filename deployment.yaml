@@ -12,11 +12,11 @@ spec:
       labels:
         app: tomcat-app
     spec:
-      hostNetwork: true
+      hostNetwork: true  
       containers:
         - name: tomcat-app
-          image: theparasuraman/vod-docker:latest
-          imagePullPolicy: Always
+          image: my-tomcat-app:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9090
           volumeMounts:
