@@ -1,14 +1,16 @@
-FROM ubuntu:22.04
+FROM tomcat:9.0.65-jdk8
 
-ENV DEBIAN_FRONTEND=noninteractive
+# Remove default apps
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-RUN apt-get update && \
-    apt-get install -y nginx && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Deploy your ROOT.war
+COPY ROOT.war /usr/local/tomcat/webapps/ROOT.war
 
-COPY index.html /var/www/html/index.html
+# Expose custom port
+EXPOSE 9090
 
-EXPOSE 80
+# Change Tomcat port from 8080 to 8787
+RUN sed -i 's/port="8080"/port="9090"/g' /usr/local/tomcat/conf/server.xml
 
-CMD ["nginx", "-g", "daemon off;"]
+RUN sed -i 's/port="8005"/port="-1"/g' /usr/local/tomcat/conf/server.xml
+

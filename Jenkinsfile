@@ -31,6 +31,16 @@ pipeline {
             }
         }
 
+
+stage('Deploy to Kubernetes') {
+    steps {
+        sh """
+            sed -i 's|image:.*|image: $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG|' deployment.yaml
+            kubectl apply -f deployment.yaml
+        """
+    }
+}
+
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
@@ -48,6 +58,7 @@ pipeline {
             }
         }
     }
+
 
     post {
         always {
