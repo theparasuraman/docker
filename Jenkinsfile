@@ -1,21 +1,17 @@
 pipeline {
     agent any
-
     environment {
         DOCKER_REPO = 'theparasuraman'  
         IMAGE_NAME  = 'jenkins-with-docker'
         IMAGE_TAG   = "${BUILD_NUMBER}" 
     }
-
     stages {
-
         stage('Clone Source') {
             steps {
                 deleteDir()
                 git branch: 'main', url: 'https://github.com/theparasuraman/docker.git'
             }
         }
-
         stage('Build Docker Image') {
             steps {
                 sh """
@@ -24,23 +20,11 @@ pipeline {
                 """
             }
         }
-
         stage('Test Container') {
             steps {
                 sh "docker run --rm $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG echo 'Container works!'"
             }
         }
-
-
-stage('Deploy to Kubernetes') {
-    steps {
-        sh """
-            sed -i 's|image:.*|image: $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG|' deployment.yaml
-            kubectl apply -f deployment.yaml
-        """
-    }
-}
-
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
@@ -57,9 +41,15 @@ stage('Deploy to Kubernetes') {
                 }
             }
         }
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                    sed -i 's|image:.*|image: $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG|' deployment.yaml
+                    kubectl apply -f deployment.yaml
+                """
+            }
+        }
     }
-
-
     post {
         always {
             sh 'docker image prune -f'
