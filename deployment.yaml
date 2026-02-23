@@ -12,7 +12,7 @@ spec:
       labels:
         app: tomcat-app
     spec:
-      hostNetwork: true  
+      hostNetwork: true   # equivalent to --network host
       containers:
         - name: tomcat-app
           image: my-tomcat-app:latest

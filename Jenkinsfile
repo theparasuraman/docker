@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_REPO = 'theparasuraman'  
-        IMAGE_NAME  = 'vod-docker'
+        IMAGE_NAME  = 'jenkins-with-docker'
         IMAGE_TAG   = "${BUILD_NUMBER}" 
     }
 
