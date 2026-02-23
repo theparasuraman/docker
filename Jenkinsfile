@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REPO = 'theparasuraman'  
-        IMAGE_NAME  = 'jenkins-with-docker'
+        DOCKER_REPO = 'theparasuraman'
+        IMAGE_NAME  = 'vod-docker'            // ← updated
         IMAGE_TAG   = "${BUILD_NUMBER}" 
     }
     stages {
@@ -15,7 +15,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh """
-                    docker build -t $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG .
+                    docker build --no-cache -t $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG .
                     docker tag $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG $DOCKER_REPO/$IMAGE_NAME:latest
                 """
             }
@@ -32,12 +32,12 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh """
+                    sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push $DOCKER_REPO/$IMAGE_NAME:$IMAGE_TAG
                         docker push $DOCKER_REPO/$IMAGE_NAME:latest
                         docker logout
-                    """
+                    '''
                 }
             }
         }
